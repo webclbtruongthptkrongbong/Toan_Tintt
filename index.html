@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>🎮 Truy Tìm Đáp Án</title>
+<style>
+:root{
+  --bg:#dff9fb; --panel:#ffffffaa; --accent:#f0932b; --good:#2ecc71; --bad:#e74c3c;
+  --muted:#6c7a89;
+}
+html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, Arial; background:linear-gradient(180deg,#e8fbff,#dff9fb); color:#222}
+.wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:30px}
+.card{width:900px;max-width:98%;background:var(--panel);box-shadow:0 8px 30px rgba(20,40,60,.08);border-radius:12px;padding:18px;display:flex;gap:18px;overflow:hidden}
+.left{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px}
+.title{font-size:22px;font-weight:700;color:#0b2545;margin-bottom:6px}
+.subtitle{color:var(--muted);margin-bottom:18px}
+.start-box{width:100%;max-width:360px;background:linear-gradient(180deg,#ffffff,#f7fffe);Padding:18px;border-radius:10px;box-shadow:0 6px 20px rgba(2,8,23,.04);text-align:center}
+input[type="text"]{width:100%;padding:10px;border-radius:8px;border:1px solid #d0e6e6;font-size:16px;margin-bottom:12px}
+button{cursor:pointer;padding:10px 14px;border-radius:10px;border:0;font-weight:700}
+.btn-start{background:linear-gradient(90deg,#badc58,#f6e58d);color:#053;box-shadow:0 6px 16px rgba(0,0,0,.08);font-size:16px}
+.btn-small{background:#fff;border:1px solid #e6eef0;padding:8px 10px;border-radius:8px}
+.right{width:620px;max-width:62%;background:linear-gradient(180deg,#ffffff,#f6fffe);border-radius:10px;padding:10px; position:relative}
+canvas{display:block;border-radius:8px;background:linear-gradient(180deg,#dff9fb,#eafcff)}
+.hud{position:absolute;left:12px;top:12px;display:flex;gap:12px;align-items:center}
+.hud .chip{background:#fff;padding:6px 10px;border-radius:10px;box-shadow:0 4px 12px rgba(10,20,30,.05);font-weight:700}
+.question{position:absolute;left:12px;bottom:12px;background:#fff;padding:10px 12px;border-radius:8px;box-shadow:0 6px 18px rgba(2,8,23,.04);max-width:80%;font-weight:700}
+.end-screen{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center}
+.end-panel{background:#fff;padding:24px;border-radius:12px;text-align:center;width:360px}
+.floating{position:absolute;pointer-events:none;font-weight:800}
+.footer-note{font-size:12px;color:var(--muted);margin-top:10px}
+@media (max-width:900px){ .card{flex-direction:column} .right{width:100%;max-width:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="left">
+      <div class="title">🎮 TRUY TÌM ĐÁP ÁN </div>
+      <div class="subtitle">Nhập tên, bấm Bắt đầu và thu thập đáp án đúng trước khi hết giờ!</div>
+
+      <div class="start-box" id="startBox">
+        <label style="display:block;text-align:left;font-weight:700;margin-bottom:8px">Tên người chơi</label>
+        <input id="playerName" type="text" placeholder="Nhập tên của bạn..." maxlength="24" />
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+          <button class="btn-start" id="btnStart">▶️ Bắt đầu chơi</button>
+        </div>
+        <div class="footer-note">Dùng phím ← → để di chuyển. Dùng ↑ để hứng đáp án.</div>
+      </div>
+
+      <div style="margin-top:14px;color:var(--muted);max-width:360px;text-align:center">
+        <div><strong>Luật chơi ngắn:</strong> các đáp án rơi từ trên xuống. Đứng dưới và "bắt" đáp án. Đúng +1, sai -1. Có giới hạn thời gian, mỗi câu tối đa 15 giây.</div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="hud" id="hud" style="display:none">
+        <div class="chip" id="timerChip">⏰ 0</div>
+        <div class="chip" id="scoreChip">🏆 0</div>
+        <div class="chip" id="nameChip">👤 —</div>
+      </div>
+
+      <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+      <div class="question" id="questionBox" style="display:none">❓ Câu hỏi</div>
+
+      <div id="endScreen" style="display:none" class="end-screen">
+        <div class="end-panel" id="endPanel">
+          <div style="font-size:18px;font-weight:800" id="endName">Người chơi</div>
+          <div style="font-size:22px;color:#e74c3c;margin:10px 0" id="endReason">HẾT GIỜ</div>
+          <div style="font-size:16px;color:#3498db" id="endTime">Thời gian: 0 giây</div>
+          <div style="font-size:18px;color:#2ecc71;margin-top:10px" id="endScore">Điểm: 0</div>
+          <div style="margin-top:14px;display:flex;gap:8px;justify-content:center">
+            <button class="btn-small" id="btnReplay">🔁 Chơi lại</button>
+            <button class="btn-small" id="btnBack">🏠 Về màn hình chính</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const allQuestions = [
+  {q:"Để biểu diễn một tập hợp người ta thường dùng biểu đồ VEN, có hình dạng là:", choices:["Tròn","Elip","Vuông","Tam giác"], a:"Elip"},
+  {q:"Tìm số tiếp theo trong dãy số: 1, 1, 2, 3, 5, 8,…?", choices:["13","12","14","40"], a:"13"},
+  {q:"Trong tam giác, cạnh lớn nhất luôn nằm đối diện góc?", choices:["Bé nhất","Bất kỳ","Vuông","Lớn nhất"], a:"Lớn nhất"},
+  {q:"Con gì càng dài càng to?", choices:["con số tự nhiên","Con cua","con voi","con trăn"], a:"con số tự nhiên"},
+  {q:"Một cầu vồng có 7 màu, vậy 3 chiếc cầu vồng sẽ có tổng bao nhiêu màu?", choices:["7 màu","21 màu","10 màu","14 màu"], a:"7 màu"},
+  {q:"Thiết bị nào dùng để lưu trữ dữ liệu lâu dài?", choices:["RAM","CPU","Ổ cứng","ROM"], a:"Ổ cứng"},
+  {q:"Trong máy tính, đơn vị đo dung lượng nhỏ nhất là?", choices:["Byte","Bit","KB","MB"], a:"Bit"},
+  {q:"Phần mềm soạn thảo văn bản thông dụng là?", choices:["Word","Excel","Paint","Chrome"], a:"Word"},
+  {q:"Internet là mạng gì?", choices:["Toàn cầu","LAN","WAN","Gia đình"], a:"Toàn cầu"},
+  {q:"Tập tin có phần mở rộng .ppt hoặc .pptx dùng cho phần mềm nào?", choices:["Word","PowerPoint","Excel","Paint"], a:"PowerPoint"}
+];
+
+const WIDTH=600, HEIGHT=400, PLAYER_W=60, PLAYER_H=18, ANSWER_R=28, SPEED=0.5, TIME_PER_QUESTION=15;
+const GAME_TIME = allQuestions.length*TIME_PER_QUESTION;
+
+const canvas=document.getElementById('gameCanvas');
+const ctx=canvas.getContext('2d');
+const btnStart=document.getElementById('btnStart');
+const startBox=document.getElementById('startBox');
+const playerNameInput=document.getElementById('playerName');
+const hud=document.getElementById('hud');
+const timerChip=document.getElementById('timerChip');
+const scoreChip=document.getElementById('scoreChip');
+const nameChip=document.getElementById('nameChip');
+const questionBox=document.getElementById('questionBox');
+const endScreen=document.getElementById('endScreen');
+const endName=document.getElementById('endName');
+const endReason=document.getElementById('endReason');
+const endTime=document.getElementById('endTime');
+const endScore=document.getElementById('endScore');
+const btnReplay=document.getElementById('btnReplay');
+const btnBack=document.getElementById('btnBack');
+
+let playerName='Người chơi', score=0, startTime=0, remainingQuestions=[], currentCorrect=null, answersOnScreen=[], gameOver=false;
+let player={x:WIDTH/2-PLAYER_W/2,y:HEIGHT-80,w:PLAYER_W,h:PLAYER_H};
+let keys={left:false,right:false}; let lastFrame=0;
+const audioCtx=new (window.AudioContext || window.webkitAudioContext)();
+function beep(freq,timeMs,type='sine',gain=0.06){ const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type=type;o.frequency.value=freq; g.gain.value=gain; o.connect(g); g.connect(audioCtx.destination); o.start(); setTimeout(()=>{o.stop();o.disconnect();g.disconnect()},timeMs); }
+
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ let j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
+function circleRectCollide(cx,cy,r, rx,ry,rw,rh){ let closestX=Math.max(rx, Math.min(cx,rx+rw)); let closestY=Math.max(ry,Math.min(cy,ry+rh)); let dx=cx-closestX, dy=cy-closestY; return dx*dx+dy*dy <= r*r; }
+function showStartUI(show=true){ startBox.style.display = show ? 'block' : 'none'; }
+
+function startGame(){
+  const nm = playerNameInput.value.trim(); playerName = nm || 'Người chơi';
+  score = 0; startTime=Date.now(); remainingQuestions = JSON.parse(JSON.stringify(allQuestions));
+  shuffle(remainingQuestions); answersOnScreen=[]; currentCorrect=null; gameOver=false;
+  player.x = WIDTH/2-PLAYER_W/2;
+  showStartUI(false); hud.style.display='flex'; questionBox.style.display='block';
+  nameChip.textContent='👤 '+playerName; if(audioCtx.state==='suspended') audioCtx.resume();
+  newQuestion(); lastFrame=performance.now(); requestAnimationFrame(loop);
+}
+
+function endGame(reason="HẾT GIỜ"){
+  if(gameOver) return; gameOver=true; beep(800,350,'sine',0.08);
+  const elapsed=Math.floor((Date.now()-startTime)/1000);
+  endName.textContent=playerName; endReason.textContent=reason;
+  endTime.textContent='⏰ Thời gian: '+elapsed+' giây';
+  endScore.textContent='🏆 Điểm: '+score; endScreen.style.display='flex';
+}
+
+function newQuestion(){
+  if(gameOver) return;
+  if(remainingQuestions.length===0){ if(answersOnScreen.length===0) endGame("HẾT CÂU HỎI"); return; }
+  const item = remainingQuestions.shift();
+  questionBox.textContent='❓ '+item.q; currentCorrect=item.a;
+  const choices=shuffle(item.choices.slice()); const used=[];
+  for(const ans of choices){
+    let found=false; for(let t=0;t<40;t++){
+      const x=randInt(ANSWER_R+20,WIDTH-ANSWER_R-20);
+      if(!used.some(u=>Math.abs(u-x)<ANSWER_R*2.2)){ used.push(x);
+        answersOnScreen.push({x:x,y:randInt(-220,-40),r:ANSWER_R,vy:randInt(10,20)/10*SPEED,text:ans,color:['#f6e58d','#ffbe76','#ff7979','#badc58'][randInt(0,3)],alpha:1}); found=true; break;
+      }
+    }
+    if(!found){ const x=randInt(ANSWER_R+20,WIDTH-ANSWER_R-20);
+      answersOnScreen.push({x:x,y:randInt(-220,-40),r:ANSWER_R,vy:randInt(10,20)/10*SPEED,text:ans,color:['#f6e58d','#ffbe76','#ff7979','#badc58'][randInt(0,3)],alpha:1});
+    }
+  }
+}
+
+function updateHUD(){
+  const elapsed=Math.floor((Date.now()-startTime)/1000); const remain=Math.max(0,GAME_TIME-elapsed);
+  timerChip.textContent='⏰ '+remain; scoreChip.textContent='🏆 '+score; nameChip.textContent='👤 '+playerName;
+  if(remain<=0) endGame("HẾT GIỜ");
+}
+
+function draw(){ ctx.clearRect(0,0,WIDTH,HEIGHT);
+  for(const a of answersOnScreen){
+    ctx.globalAlpha=a.alpha??1; ctx.beginPath(); ctx.fillStyle=a.color; ctx.strokeStyle='#2222'; ctx.lineWidth=1;
+    ctx.ellipse(a.x,a.y,a.r,a.r,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#222'; ctx.font='bold 12px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(a.text,a.x,a.y); ctx.globalAlpha=1;
+  }
+  ctx.fillStyle='#f0932b'; ctx.fillRect(player.x,player.y,player.w,player.h);
+  ctx.strokeStyle='#2222'; ctx.strokeRect(player.x,player.y,player.w,player.h);
+}
+
+let floatingTexts=[]; function spawnFloating(x,y,txt,color){ floatingTexts.push({x,y,txt,color,life:0.8,alpha:1}); }
+
+function physics(dt){
+  if(keys.left) player.x-=360*dt;
+  if(keys.right) player.x+=360*dt;
+  if(player.x<4) player.x=4; if(player.x+player.w>WIDTH-4) player.x=WIDTH-player.w-4;
+
+  for(let i=answersOnScreen.length-1;i>=0;i--){
+    const a=answersOnScreen[i]; a.y+=a.vy*(dt*60);
+    if(a.y-a.r>HEIGHT+20){ answersOnScreen.splice(i,1); continue; }
+    if(circleRectCollide(a.x,a.y,a.r-6,player.x,player.y,player.w,player.h)){
+      if(a.text===currentCorrect){ score+=1; beep(1000,120,'sine',0.08); spawnFloating(player.x+player.w/2,player.y-8,'+1','#2ecc71'); }
+      else { score-=1; beep(400,200,'sawtooth',0.08); spawnFloating(player.x+player.w/2,player.y-8,'-1','#e74c3c'); }
+      answersOnScreen=[]; currentCorrect=null; questionBox.textContent='⏳ Đang chuyển câu hỏi...';
+      setTimeout(()=>{if(!gameOver) newQuestion()},300); break;
+    }
+  }
+
+  for(let i=floatingTexts.length-1;i>=0;i--){ const f=floatingTexts[i]; f.y-=30*dt; f.life-=dt; f.alpha=Math.max(0,f.life/0.8); if(f.life<=0) floatingTexts.splice(i,1); }
+
+  // ⭐ — ĐOẠN BỔ SUNG (giữ nguyên mọi thứ khác):
+  // Nếu tất cả đáp án đã rơi xuống và giỏ chưa từng chạm đáp án nào cho câu này
+  if (answersOnScreen.length === 0 && currentCorrect !== null && !gameOver) {
+    currentCorrect = null;
+    questionBox.textContent = '⏳ Đang chuyển câu hỏi...';
+    setTimeout(() => { if (!gameOver) newQuestion(); }, 300);
+  }
+}
+
+function drawFloating(){ for(const f of floatingTexts){ ctx.globalAlpha=f.alpha; ctx.fillStyle=f.color; ctx.font='bold 18px Arial'; ctx.textAlign='center'; ctx.fillText(f.txt,f.x,f.y); } ctx.globalAlpha=1; }
+
+function loop(ts){ if(gameOver) return; const dt=Math.min(0.05,(ts-lastFrame)/1000); lastFrame=ts; physics(dt); draw(); drawFloating(); updateHUD(); requestAnimationFrame(loop); }
+
+window.addEventListener('keydown',e=>{
+  if(gameOver) return; if(['ArrowLeft','ArrowRight','ArrowUp'].includes(e.key)) e.preventDefault();
+  if(e.key==='ArrowLeft') keys.left=true;
+  if(e.key==='ArrowRight') keys.right=true;
+  if(e.key==='ArrowUp'){
+    if(answersOnScreen.length===0 || currentCorrect===null) return;
+    let closestIndex=-1,closestDist=Infinity; const centerX=player.x+player.w/2;
+    for(let i=0;i<answersOnScreen.length;i++){ const a=answersOnScreen[i]; const dx=Math.abs(centerX-a.x); if(dx<closestDist){ closestDist=dx; closestIndex=i; } }
+    if(closestIndex!==-1){
+      const a=answersOnScreen[closestIndex];
+      if(a.text===currentCorrect){ score+=1; beep(1000,120,'sine',0.08); spawnFloating(player.x+player.w/2,player.y-8,'+1','#2ecc71'); }
+      else { score-=1; beep(400,200,'sawtooth',0.08); spawnFloating(player.x+player.w/2,player.y-8,'-1','#e74c3c'); }
+      answersOnScreen=[]; currentCorrect=null; questionBox.textContent='⏳ Đang chuyển câu hỏi...';
+      setTimeout(()=>{if(!gameOver) newQuestion()},300);
+    }
+  }
+});
+window.addEventListener('keyup',e=>{ if(e.key==='ArrowLeft') keys.left=false; if(e.key==='ArrowRight') keys.right=false; });
+
+btnStart.onclick=startGame;
+btnReplay.onclick=()=>{ endScreen.style.display='none'; startGame(); };
+btnBack.onclick=()=>{ endScreen.style.display='none'; showStartUI(true); hud.style.display='none'; questionBox.style.display='none'; ctx.clearRect(0,0,WIDTH,HEIGHT); };
+</script>
+</body>
+</html>
